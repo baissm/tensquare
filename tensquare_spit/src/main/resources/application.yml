@@ -5,5 +5,7 @@ spring:
     name: tensquare-spit
   data:
     mongodb:
-      host: 154.8.216.45
+      host: 121.37.135.119
       database: spitdb
+    redis:
+      host: 121.37.135.119
