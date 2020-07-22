@@ -1,22 +1,18 @@
 package com.baissy.user.controller;
-import java.util.List;
-import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.baissy.tensquare.entity.PageResult;
+import com.baissy.tensquare.entity.Result;
+import com.baissy.tensquare.entity.StatusCode;
+import com.baissy.tensquare.entity.until.JwtUtil;
 import com.baissy.user.pojo.Admin;
 import com.baissy.user.service.AdminService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.*;
 
-import entity.PageResult;
-import entity.Result;
-import entity.StatusCode;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 控制器层
  * @author Administrator
@@ -29,15 +25,32 @@ public class AdminController {
 
 	@Autowired
 	private AdminService adminService;
-	
-	
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+	@RequestMapping(value = "/login",method = RequestMethod.POST)
+	public Result login(@RequestBody Admin admin){
+	    Admin adminLogin = adminService.login(admin);
+	    if(adminLogin==null){
+	        return  new Result(false,StatusCode.LOGINERROR,"登陆失败");
+        }
+        //这里需要使前后端可以通话，采用JWT来实现。
+        //生成令牌
+        String token = jwtUtil.createJWT(adminLogin.getId(), adminLogin.getLoginname(), "admin");
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("token",token);
+        map.put("role","admin");
+        return  new Result(true,StatusCode.OK,"登陆成功",token);
+    }
+
 	/**
 	 * 查询全部数据
 	 * @return
 	 */
 	@RequestMapping(method= RequestMethod.GET)
 	public Result findAll(){
-		return new Result(true,StatusCode.OK,"查询成功",adminService.findAll());
+		return new Result(true, StatusCode.OK,"查询成功",adminService.findAll());
 	}
 	
 	/**

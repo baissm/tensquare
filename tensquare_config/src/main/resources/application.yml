@@ -1,0 +1,12 @@
+server:
+  port: 12000
+spring:
+  application:
+    name: tensquare-config
+  cloud:
+    config:
+      server:
+        git:
+          username: baissm@qq.com
+          password: huhu0486047079
+          uri: https://gitee.com/baissy/ConfigTensquare.git

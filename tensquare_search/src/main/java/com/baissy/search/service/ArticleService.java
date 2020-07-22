@@ -3,6 +3,8 @@ package com.baissy.search.service;
 import com.baissy.search.dao.ArticleDao;
 import com.baissy.search.pojo.Article;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,5 +23,11 @@ public class ArticleService {
 //        article.setId(idWorker.nextId()+"");
         articleDao.save(article);
 
+    }
+
+
+    public Page<Article> findByKey(String key, int page, int size) {
+        PageRequest pageable = PageRequest.of(page-1,size);
+        return articleDao.findByTitleOrContentLike(key,key,pageable);
     }
 }

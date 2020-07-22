@@ -1,4 +1,4 @@
-package com.baissy.user.interceptor;
+package com.baissy.qa.interceptor;
 
 import com.baissy.tensquare.entity.until.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -22,7 +22,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         System.out.println("经过了拦截器");
         String header =request.getHeader("Authorization");
-        if(header!=null&&"".equals(header)){
+        if(header!=null&&!"".equals(header)){
             if(header.startsWith("Bearer ")){
                 String token = header.substring(7);
                 try{

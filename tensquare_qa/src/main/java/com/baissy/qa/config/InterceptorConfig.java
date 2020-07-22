@@ -1,6 +1,6 @@
-package com.baissy.user.config;
+package com.baissy.qa.config;
 
-import com.baissy.user.interceptor.JwtInterceptor;
+import com.baissy.qa.interceptor.JwtInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

@@ -1,4 +1,4 @@
-package com.baissy.user.interceptor;
+package com.baisyy.friend.interceptor;
 
 import com.baissy.tensquare.entity.until.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -29,10 +29,10 @@ public class JwtInterceptor implements HandlerInterceptor {
                     Claims claims = jwtUtil.parseJWT(token);
                     String roles= (String) claims.get("roles");
                     if(roles!=null&& roles.equals("admin")){
-                        request.setAttribute("claims_admin",token);
+                        request.setAttribute("claims_admin",claims);
                     }
                     if(roles!=null&&roles.equals("user")){
-                        request.setAttribute("claims_user",token);
+                        request.setAttribute("claims_user",claims);
                     }
 
                 }catch (Exception e){

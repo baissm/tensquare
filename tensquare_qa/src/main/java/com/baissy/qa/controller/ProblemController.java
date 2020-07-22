@@ -1,5 +1,6 @@
 package com.baissy.qa.controller;
 
+import com.baissy.qa.client.BaseClient;
 import com.baissy.qa.pojo.Problem;
 import com.baissy.qa.service.ProblemService;
 import com.baissy.tensquare.entity.PageResult;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 /**
  * 控制器层
@@ -22,7 +24,19 @@ public class ProblemController {
 
 	@Autowired
 	private ProblemService problemService;
-	
+
+	@Autowired
+    private HttpServletRequest request;
+
+	@Autowired
+    private BaseClient baseClient;
+
+	@RequestMapping(value = "/lable/{lableId}",method =RequestMethod.GET)
+	public Result findLableId(@PathVariable("lableId") String lableId){
+	    Result result=baseClient.findById(lableId);
+	    return result;
+    }
+
 	@RequestMapping(value = "/newlist/{labelid}/{page}/{size}",method = RequestMethod.GET)
 	public Result newlist(@PathVariable String labelid,@PathVariable int page,@PathVariable int size){
 		Page<Problem> pageData = problemService.newlist(labelid, page, size);
@@ -89,6 +103,11 @@ public class ProblemController {
 	 */
 	@RequestMapping(method=RequestMethod.POST)
 	public Result add(@RequestBody Problem problem  ){
+        String token = (String) request.getAttribute("claims_user");
+        if(token==null||"".equals(token)){
+            return new Result(false,StatusCode.ERROR,"权限不足");
+        }
+
 		problemService.add(problem);
 		return new Result(true,StatusCode.OK,"增加成功");
 	}

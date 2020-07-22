@@ -1,28 +1,27 @@
 package com.baissy.user.service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
-
+import com.baissy.tensquare.entity.until.JwtUtil;
+import com.baissy.user.dao.UserDao;
+import com.baissy.user.pojo.User;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import util.IdWorker;
 
-import com.baissy.user.dao.UserDao;
-import com.baissy.user.pojo.User;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 服务层
@@ -31,6 +30,7 @@ import com.baissy.user.pojo.User;
  *
  */
 @Service
+@Transactional
 public class UserService {
 
 	@Autowired
@@ -38,6 +38,32 @@ public class UserService {
 	
 	@Autowired
 	private IdWorker idWorker;
+
+	@Autowired
+    RedisTemplate redisTemplate;
+
+	@Autowired
+    RabbitTemplate rabbitTemplate;
+
+	@Autowired
+    BCryptPasswordEncoder encoder;
+
+    @Autowired
+    HttpServletRequest httpServletRequest;
+
+    @Autowired
+    JwtUtil jwtUtil;
+
+    public User login(User user) {
+        //先根据用户名查询对象
+        User userLogin = userDao.findByMobile(user.getMobile());
+        //然后匹配数据库中的密码与用户输入的密码是否一致。
+        //首先判断从数据库中查询出来的数据是否为null
+        if(userLogin!=null&& encoder.matches(user.getPassword(),userLogin.getPassword())){
+            return userLogin;
+        }
+        return null;
+    }
 
 	/**
 	 * 查询全部列表
@@ -87,6 +113,16 @@ public class UserService {
 	 */
 	public void add(User user) {
 		user.setId( idWorker.nextId()+"" );
+
+		//密码加密
+		user.setPassword(encoder.encode(user.getPassword()));
+		user.setFanscount(0);
+		user.setFollowcount(0);
+		user.setOnline(0L);
+		user.setRegdate(new Date());
+		user.setUpdatedate(new Date());
+		user.setUpdatedate(new Date());
+		user.setLastdate(new Date());
 		userDao.save(user);
 	}
 
@@ -103,7 +139,14 @@ public class UserService {
 	 * @param id
 	 */
 	public void deleteById(String id) {
-		userDao.deleteById(id);
+        String token = (String) httpServletRequest.getAttribute("claims_admin");
+        if(token!=null&& "".equals(token))
+        {
+            throw new RuntimeException("权限不足");
+        }
+        else {
+            userDao.deleteById(id);
+        }
 	}
 
 	/**
@@ -162,4 +205,23 @@ public class UserService {
 
 	}
 
+    public void sendSms(String mobile) {
+	    //生成随机数
+        String checkcode = RandomStringUtils.randomNumeric(6);
+        //存入缓存
+        redisTemplate.opsForValue().set("checkcode_"+mobile,checkcode,1, TimeUnit.HOURS);
+        Map<String,String> map=new HashMap<>();
+        map.put("mobile",mobile);
+        map.put("checkcode",checkcode);
+        //发送给用户
+        rabbitTemplate.convertAndSend("sms",map);
+
+        System.out.println("验证码："+checkcode);
+    }
+
+    public void updateFanscountAndFollowcount(int x, String userid, String friendid) {
+	    userDao.updateFanscount(x,friendid);
+	    userDao.updateFollowcount(x,userid);
+
+    }
 }

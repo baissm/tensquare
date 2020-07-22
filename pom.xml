@@ -9,14 +9,22 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>tensquare_common</module>
-        <module>tensquare_base</module>
-        <module>tensquare_recruit</module>
-        <module>tensquare_qa</module>
-        <module>tensquare_article</module>
-        <module>tensquare_gathering</module>
+      <module>tensquare_common</module>
+      <module>tensquare_base</module>
+      <module>tensquare_recruit</module>
+      <module>tensquare_qa</module>
+      <module>tensquare_article</module>
+      <module>tensquare_gathering</module>
       <module>tensquare_spit</module>
       <module>tensquare_search</module>
+      <module>tensquare_rabbitmqtest</module>
+      <module>tensquare_user</module>
+      <module>tenquare_sms</module>
+      <module>tensquare_eureka</module>
+      <module>tensquare_friend</module>
+      <module>tensquare_manager</module>
+      <module>tensquare_web</module>
+      <module>tensquare_config</module>
 
     </modules>
 
@@ -31,24 +39,38 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
+      <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
     </properties>
 
+    <dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-dependencies</artifactId>
+          <version>${spring-cloud.version}</version>
+          <type>pom</type>
+          <scope>import</scope>
+        </dependency>
+      </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.16.18</version>
-            <scope>provided</scope>
-      </dependency>
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-web</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-test</artifactId>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.16.18</version>
+        <scope>provided</scope>
+      </dependency>
+
     </dependencies>
 
     <repositories>

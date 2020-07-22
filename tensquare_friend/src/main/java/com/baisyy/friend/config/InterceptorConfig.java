@@ -1,6 +1,6 @@
 package com.baisyy.friend.config;
 
-import com.baissy.user.interceptor.JwtInterceptor;
+import com.baisyy.friend.interceptor.JwtInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

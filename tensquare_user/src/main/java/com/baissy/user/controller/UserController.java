@@ -1,22 +1,20 @@
 package com.baissy.user.controller;
-import java.util.List;
-import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.baissy.tensquare.entity.PageResult;
+import com.baissy.tensquare.entity.Result;
+import com.baissy.tensquare.entity.StatusCode;
+import com.baissy.tensquare.entity.until.JwtUtil;
 import com.baissy.user.pojo.User;
 import com.baissy.user.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
-import entity.PageResult;
-import entity.Result;
-import entity.StatusCode;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 /**
  * 控制器层
  * @author Administrator
@@ -29,15 +27,73 @@ public class UserController {
 
 	@Autowired
 	private UserService userService;
-	
-	
+	@Autowired
+    private RedisTemplate redisTemplate;
+	@Autowired
+    private util.IdWorker idWorker;
+    @Autowired
+    private BCryptPasswordEncoder encoder;
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    //更新粉丝数和关注数
+    @PutMapping(value = "/{userid}/{friendid}/{x}")
+    public void updateFanscountAndFollowcount(@PathVariable String userid,@PathVariable String friendid,@PathVariable int x){
+        userService.updateFanscountAndFollowcount(x,userid,friendid);
+    }
+
+    @RequestMapping(value = "/login",method = RequestMethod.POST)
+    public Result login(@RequestBody User user){
+        User userLogin = userService.login(user);
+        if(userLogin==null){
+            return  new Result(false,StatusCode.LOGINERROR,"登陆失败");
+        }
+        //这里需要使前后端可以通话，采用JWT来实现。
+        String token = jwtUtil.createJWT(userLogin.getId(), userLogin.getMobile(), "user");
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("token",token);
+        map.put("role","user");
+        return  new Result(true,StatusCode.OK,"登陆成功",map);
+    }
+
+
+	@RequestMapping(value = "/sendsms/{mobile}",method = RequestMethod.POST)
+	public Result senSms(@PathVariable String mobile){
+	    userService.sendSms(mobile);
+	    return new Result(true,StatusCode.OK,"发送成功");
+    }
+
+    @RequestMapping(value = "/register/{code}",method = RequestMethod.POST)
+    public Result regist(@PathVariable String code,@RequestBody User user){
+	    //获取缓存中的验证码
+        String checkcodeRedis = (String) redisTemplate.opsForValue().get("checkcode_" + user.getMobile());
+        if(checkcodeRedis.isEmpty()){
+            return new Result(false,StatusCode.ERROR,"请先获取手机验证码");
+        }
+        else {
+            if(!checkcodeRedis.equals(code)){
+                return new Result(false,StatusCode.ERROR,"验证码错误");
+            }
+            else {
+                user.setId( idWorker.nextId()+"" );
+                user.setFollowcount(0);//关注数
+                user.setFanscount(0);//粉丝数
+                user.setOnline(0L);//在线时长
+                user.setRegdate(new Date());//注册日期
+                user.setUpdatedate(new Date());//更新日期
+                user.setLastdate(new Date());//最后登陆日期
+                userService.add(user);
+                return new Result(true,StatusCode.OK,"注册成功");
+            }
+        }
+    }
 	/**
 	 * 查询全部数据
 	 * @return
 	 */
 	@RequestMapping(method= RequestMethod.GET)
 	public Result findAll(){
-		return new Result(true,StatusCode.OK,"查询成功",userService.findAll());
+		return new Result(true, StatusCode.OK,"查询成功",userService.findAll());
 	}
 	
 	/**
@@ -101,6 +157,7 @@ public class UserController {
 	 */
 	@RequestMapping(value="/{id}",method= RequestMethod.DELETE)
 	public Result delete(@PathVariable String id ){
+
 		userService.deleteById(id);
 		return new Result(true,StatusCode.OK,"删除成功");
 	}

@@ -10,5 +10,5 @@ import com.baissy.user.pojo.Admin;
  *
  */
 public interface AdminDao extends JpaRepository<Admin,String>,JpaSpecificationExecutor<Admin>{
-	
+	public Admin findByLoginname(String loginname);
 }

@@ -5,9 +5,22 @@ spring:
     name: tensquare-qa #指定服务名
   datasource:  
     driverClassName: com.mysql.jdbc.Driver
-    url: jdbc:mysql://121.37.135.119:3306/tensquare_qa?characterEncoding=UTF8&serverTimezone=UTC
+    url: jdbc:mysql://111.229.147.106:3306/tensquare_qa?useUnicode=true&amp;characterEncoding=UTF8&serverTimezone=UTC
     username: root
     password: 123456
   jpa: 
     database: MySQL
     show-sql: true
+
+jwt:
+  config:
+    key: baissy
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:6868/eureka
+  instance:
+    prefer-ip-address: true
+feign:
+  hystrix:
+    enabled: true
