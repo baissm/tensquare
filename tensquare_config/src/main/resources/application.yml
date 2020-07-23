@@ -7,6 +7,6 @@ spring:
     config:
       server:
         git:
+          uri: https://gitee.com/baissy/ConfigTensquare.git
           username: baissm@qq.com
           password: huhu0486047079
-          uri: https://gitee.com/baissy/ConfigTensquare.git
